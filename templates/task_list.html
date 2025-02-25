@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do-List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1 style="text-align: center;">{{ list_name }}</h1>
+    <p style="text-align: center;">Filters: <a href="{{ url_for('task_list', list_name=list_name, task_filter='all')}}">All</a> - 
+                <a href="{{ url_for('task_list', list_name=list_name, task_filter='complete')}}">Complete</a> - 
+                <a href="{{ url_for('task_list', list_name=list_name, task_filter='incomplete')}}">Incomplete</a>
+    </p>
+    <p style="text-align: center;">
+        {% if 'username' in session.keys() %}
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Login</a>
+        {% endif %}
+    </p>
+    <div class="home">
+        <div class="add-task-form">
+            <h3>Hello {{ session.username }}</h3>
+            <form action="{{ url_for('add_task', list_name = list_name) }}" method="POST">
+                <p><label for="task" style="font-weight: bold; font-size: 18px;">Add Task: </label></p>
+                <textarea type="text" id="task" name="task" rows="4" cols="28" placeholder="Enter a Task"
+                    style="padding: 5px; border-radius: 5px; border-width: 1px; border-color: antiquewhite;"></textarea>
+                <p><label for="due_date" style="font-weight: bold; font-size: 18px;">Due: </label>
+                <input type="date" id="due_date" name="due_date" 
+                    style="padding: 5px; border-radius: 5px; border-width: 1px; border-color: antiquewhite;"></p>
+                <a href="{{ url_for('home') }}"><button type="button" class="txt-btn hover-blue">Go Home</button></a>
+                <button class="txt-btn hover-green" type="submit">Add Task</button>      
+            </form>
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+        <div class="task-list">
+            {% if tasks %}
+                <table>
+                    <tr><th></th><th style="text-align:left; padding-left: 3%;">Tasks</th><th>Due</th><th></th><th></th></tr>
+                    <br>
+                    {% for task in tasks %}
+                        <tr>
+                            <td>
+                                {% if task.complete %}
+                                    <form action="{{ url_for('complete_task', list_name=list_name, id=task.id) }}" method="POST">
+                                        <button class="table-btn" type="submit">&#x2705;</button>
+                                    </form>
+                                {% else %}
+                                    <form action="{{ url_for('complete_task', list_name=list_name, id=task.id) }}" method="POST">
+                                        <button class="table-btn" type="submit">&#x2B1C;</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: left; padding-right: 10px; overflow-wrap: break-word;" class="{% if task.complete %}strikethrough{% endif %}">
+                                {{task.task}}
+                            </td>
+                            <td class="{% if task.complete %}strikethrough{% endif %}">
+                                {{task.due_date}}
+                            </td> 
+                            <td>
+                                <a href="{{ url_for('edit_task', list_name=list_name, id=task.id) }}">
+                                    <button class="table-btn">&#x1F4DD;</button>
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('delete_task', list_name=list_name, id=task.id) }}">
+                                    <button class="table-btn" type="button">&#x274C;</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <br>
+                <a href="{{ url_for('clear_tasks', list_name=list_name) }}">
+                    <button class="txt-btn hover-red" type="button">Clear All Tasks</button>
+                </form>
+                <br>
+            {% else %}
+                <h2>&#x2196; Add a Task!</h2>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
