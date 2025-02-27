@@ -5,12 +5,19 @@ from datetime import datetime
 from flask import Flask, render_template, redirect, request, flash, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 import bcrypt
+from decouple import config
 
 app = Flask(__name__)
-app.secret_key = "pick something secure"
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DATABASE = 'sqlite:///' + os.path.join(BASE_DIR, 'todo.db')
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE
+app.secret_key = config('SECRET_KEY')
+
+# For Local Development
+# BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+# DATABASE = 'sqlite:///' + os.path.join(BASE_DIR, 'todo.db')
+# app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE
+
+# For AWS EC2 RDS
+app.config['SQLALCHEMY_DATABASE_URI'] = config("DATABASE_CONNECTION")
+
 app.config['SQLALCHEMY_TRACK_NOTIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -22,15 +29,15 @@ class Users(db.Model):
 class TaskLists(db.Model):
     __tablename__ = 'task_lists'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String, nullable=False, unique=True)
+    name = db.Column(db.String(50), nullable=False, unique=True)
     tasks = db.relationship('Tasks', back_populates="task_list", cascade="all, delete")
 
 class Tasks(db.Model):
     __tablename__ = 'tasks'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     task_list_id = db.Column(db.Integer, db.ForeignKey('task_lists.id'), nullable=False)
-    task = db.Column(db.String(20), nullable=False)
-    due_date = db.Column(db.String, default='TBD')
+    task = db.Column(db.String(100), nullable=False)
+    due_date = db.Column(db.String(20), default='TBD')
     complete = db.Column(db.Boolean, default=False)
     date_entered = db.Column(db.DateTime, default=db.func.now())
     task_list = db.relationship('TaskLists', back_populates='tasks')
